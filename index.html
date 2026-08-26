@@ -604,6 +604,32 @@
   }
 
   // ---------------- storage ----------------
+  // GitHub Pages 等の通常ブラウザ環境向け localStorage フォールバック
+  if(!window.storage){
+    window.storage = {
+      async get(key){
+        const v = localStorage.getItem(key);
+        return v === null ? null : {value:v};
+      },
+      async set(key, value){
+        try{ localStorage.setItem(key, value); return true; }
+        catch(e){ return false; }
+      },
+      async delete(key){
+        localStorage.removeItem(key);
+        return true;
+      },
+      async list(prefix){
+        const keys = [];
+        for(let i=0;i<localStorage.length;i++){
+          const k = localStorage.key(i);
+          if(k && k.startsWith(prefix)) keys.push(k);
+        }
+        return {keys};
+      }
+    };
+  }
+
   async function loadStatus(){
     try{
       const res = await window.storage.get(STATUS_KEY, false);
